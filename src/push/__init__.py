@@ -4,6 +4,7 @@ from configparser import ConfigParser
 from push.serverchan3 import push_serverchan3
 from push.pushplus import push_pushplus
 from push.qmsg import push_qmsg
+from push.marks import FAILURE_MARK
 
 def load_config_to_env():
     """从config.ini文件加载配置到环境变量"""
@@ -41,3 +42,14 @@ def push(all_logs: list[str]):
         except Exception as e:
             logging.error(f"[Push] {k}时出现问题", exc_info=e)
     logging.info("推送结束")
+
+
+def push_failure():
+    """签到代码整体崩了时走这里：只推一条「❌工作流出错！」，不带日志。"""
+    logging.info("推送失败通知")
+    for k, v in __available_pusher.items():
+        try:
+            v([FAILURE_MARK])
+        except Exception as e:
+            logging.error(f"[Push] {k}失败通知时出现问题", exc_info=e)
+    logging.info("失败通知推送结束")

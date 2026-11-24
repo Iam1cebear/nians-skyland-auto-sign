@@ -6,6 +6,8 @@ from typing import Tuple
 
 import requests
 
+from push.marks import FAILURE_MARK
+
 
 def _format_serverchan_desp(all_logs: list[str]) -> str:
     if not all_logs:
@@ -33,9 +35,16 @@ def push_serverchan3(all_logs: list[str]):
     if not sendkey:
         return
 
-    title = f'森空岛自动签到结果 - {date.today().strftime("%Y-%m-%d")}'
-
-    desp = _format_serverchan_desp(all_logs)
+    # 签到代码整体崩了：只报「工作流出错」，不附日志
+    if all_logs and all_logs[0] == FAILURE_MARK:
+        title = '❌工作流出错！'
+        desp = '签到脚本执行时抛出异常，去 Actions 页面看是哪一步。'
+    else:
+        title = f'森空岛自动签到结果 - {date.today().strftime("%Y-%m-%d")}'
+        desp = _format_serverchan_desp(all_logs)
+        # 成功失败一眼可分：日志里出现「签到失败」就标 ❌，否则标 ✅
+        joined = ' '.join(all_logs)
+        title = ('❌ ' if '签到失败' in joined else '✅ ') + title
 
     api = f"https://sctapi.ftqq.com/{sendkey}.send"
     payload = {

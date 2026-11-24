@@ -27,3 +27,12 @@ jobs:
           EXIT_WHEN_FAIL: ${{ vars.EXIT_WHEN_FAIL }}
         run: |
           python src/main.py
+      # 兜底通知：前面任何一步失败（包括 Python 装不上、依赖装不上），都会走到这里
+      - name: Notify failure
+        if: failure()
+        env:
+          SC3_SENDKEY: ${{ secrets.SC3_SENDKEY }}
+        run: |
+          curl -s -X POST "https://sctapi.ftqq.com/${SC3_SENDKEY}.send" \
+            -H "Content-Type: application/json" \
+            -d '{"title":"❌工作流出错！","desp":"签到工作流有一步失败了，去 Actions 页面看是哪一步。"}'

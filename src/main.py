@@ -85,8 +85,16 @@ if __name__ == '__main__':
     print('https://gitee.com/FancyCabbage/skyland-auto-sign')
     logging.info('=========starting==========')
     start_time = time.time()
-    success, all_logs = start()
-    push.push(all_logs)
+
+    try:
+        success, all_logs = start()
+        push.push(all_logs)
+    except Exception as e:
+        # 签到代码本身崩了：记日志，再推一条失败通知，然后继续按原逻辑退出
+        logging.error('签到过程出现异常', exc_info=e)
+        success = False
+        push.push_failure()
+
     end_time = time.time()
     logging.info(f'complete with {(end_time - start_time) * 1000} ms')
     logging.info('===========ending============')
